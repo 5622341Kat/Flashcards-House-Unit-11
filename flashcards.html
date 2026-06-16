@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ελληνο-Αγγλικές Εκπαιδευτικές Κάρτες</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts (Inter & Ubuntu) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .font-title {
+            font-family: 'Ubuntu', sans-serif;
+        }
+        /* 3D card flip effects */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+        .preserve-3d {
+            transform-style: preserve-3d;
+        }
+        .backface-hidden {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+        
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col transition-colors duration-300 dark:bg-slate-900 dark:text-slate-100">
+
+<!-- App Wrapper -->
+<div class="flex-grow flex flex-col max-w-5xl w-full mx-auto px-4 py-6 sm:py-8">
+    <!-- Header -->
+    <header class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6 pb-6 border-b border-slate-200 dark:border-slate-800">
+        <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+                <i class="fa-solid fa-graduation-cap text-xl"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl font-black font-title tracking-tight text-slate-800 dark:text-white">Flashcards</h1>
+                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium tracking-wide uppercase">Εκμάθηση Ελληνικών & Αγγλικών</p>
+            </div>
+        </div>
+        
+        <div class="flex items-center gap-2">
+            <!-- Theme Toggle -->
+            <button id="themeToggle" class="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition" title="Αλλαγή Θέματος">
+                <i class="fa-solid fa-moon dark:hidden"></i>
+                <i class="fa-solid fa-sun hidden dark:block"></i>
+            </button>
+            
+            <!-- Quick Progress Counter -->
+            <div class="px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-semibold text-sm flex items-center gap-2">
+                <i class="fa-solid fa-star text-amber-500"></i>
+                <span>Αγαπημένα: <span id="starredCount">0</span></span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Group Navigation Tabs (Horizontal Scrollable on Mobile) -->
+    <div class="mb-6">
+        <span class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-2">Κατηγορίες Μελέτης</span>
+        <div class="flex gap-2 overflow-x-auto pb-3 pt-1 no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0" id="tabsContainer">
+            <!-- Dynamic Tabs injected by JS -->
+        </div>
+    </div>
+
+    <!-- Mode Selector Navigation -->
+    <div class="grid grid-cols-3 bg-slate-200/60 dark:bg-slate-800/60 p-1.5 rounded-2xl mb-6 gap-1 max-w-md mx-auto w-full">
+        <button onclick="switchMode('cards')" id="modeBtnCards" class="py-2.5 px-3 rounded-xl font-semibold text-sm transition flex items-center justify-center gap-2 shadow bg-white text-slate-800 dark:bg-slate-700 dark:text-white">
+            <i class="fa-solid fa-clone text-blue-500"></i> Κάρτες
+        </button>
+        <button onclick="switchMode('quiz')" id="modeBtnQuiz" class="py-2.5 px-3 rounded-xl font-semibold text-sm transition flex items-center justify-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white">
+            <i class="fa-solid fa-circle-question text-purple-500"></i> Κουίζ
+        </button>
+        <button onclick="switchMode('starred')" id="modeBtnStarred" class="py-2.5 px-3 rounded-xl font-semibold text-sm transition flex items-center justify-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white">
+            <i class="fa-solid fa-star text-amber-500"></i> Αγαπημένα
+        </button>
+    </div>
+
+    <!-- FLASHCARDS VIEW -->
+    <div id="cardsView" class="space-y-6 flex-grow flex flex-col justify-between">
+        
+        <!-- Controls & Options Bar -->
+        <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex flex-wrap gap-4 justify-between items-center text-sm">
+            <!-- Order settings -->
+            <div class="flex items-center gap-4 flex-wrap">
+                <label class="flex items-center gap-2 cursor-pointer font-medium text-slate-600 dark:text-slate-300">
+                    <input type="radio" name="langDirection" value="el-en" checked onchange="handleDirectionChange()" class="w-4 h-4 text-blue-600 focus:ring-blue-500">
+                    <span>Ελληνικά &rarr; Αγγλικά</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer font-medium text-slate-600 dark:text-slate-300">
+                    <input type="radio" name="langDirection" value="en-el" onchange="handleDirectionChange()" class="w-4 h-4 text-blue-600 focus:ring-blue-500">
+                    <span>Αγγλικά &rarr; Ελληνικά</span>
+                </label>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="flex items-center gap-2">
+                <button onclick="shuffleCurrentGroup()" class="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition flex items-center gap-1.5 font-medium text-slate-700 dark:text-slate-300">
+                    <i class="fa-solid fa-shuffle text-indigo-500"></i> Ανακάτεμα
+                </button>
+                <button onclick="toggleAutoplay()" id="autoplayBtn" class="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition flex items-center gap-1.5 font-medium text-slate-700 dark:text-slate-300">
+                    <i class="fa-solid fa-play text-emerald-500" id="autoplayIcon"></i> <span id="autoplayText">Αυτόματη Ροή</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- The Interactive Flashcard Card Stack -->
+        <div class="flex-grow flex items-center justify-center py-6">
+            <div class="relative w-full max-w-xl aspect-[3/2] min-h-[280px] sm:min-h-[350px] perspective-1000 group cursor-pointer" id="flashcardContainer">
+                <!-- Outer card wrapper to enable flipping -->
+                <div class="w-full h-full preserve-3d duration-500 relative rounded-3xl shadow-xl transition-transform" id="flashCardInner">
+                    
+                    <!-- Front of Card (Greek or English) -->
+                    <div class="absolute inset-0 w-full h-full rounded-3xl backface-hidden flex flex-col justify-between p-6 sm:p-8 bg-gradient-to-tr from-blue-500 to-indigo-600 text-white" id="cardFrontStyle">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs uppercase font-extrabold tracking-widest bg-white/20 px-3 py-1 rounded-full text-white" id="cardFrontLangLabel">Ελληνικά</span>
+                            <div class="flex gap-2">
+                                <button onclick="event.stopPropagation(); speakActiveSide('front');" class="w-10 h-10 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center transition" title="Ακρόαση">
+                                    <i class="fa-solid fa-volume-high"></i>
+                                </button>
+                                <button onclick="event.stopPropagation(); toggleStarCurrent();" class="w-10 h-10 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center transition" title="Αγαπημένο">
+                                    <i class="fa-regular fa-star text-lg" id="starIconFront"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center my-auto">
+                            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight px-4 leading-normal font-title" id="cardFrontText">-</h2>
+                        </div>
+                        
+                        <div class="flex justify-between items-center text-xs text-white/70">
+                            <span><i class="fa-regular fa-hand-pointer mr-1"></i> Κάντε κλικ για αποκάλυψη</span>
+                            <span id="cardProgressText">0 / 0</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Back of Card (English or Greek) -->
+                    <div class="absolute inset-0 w-full h-full rounded-3xl backface-hidden rotate-y-180 flex flex-col justify-between p-6 sm:p-8 bg-gradient-to-tr from-slate-800 to-slate-900 border border-slate-700 text-white" id="cardBackStyle">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs uppercase font-extrabold tracking-widest bg-white/10 px-3 py-1 rounded-full text-white/80" id="cardBackLangLabel">Αγγλικά</span>
+                            <div class="flex gap-2">
+                                <button onclick="event.stopPropagation(); speakActiveSide('back');" class="w-10 h-10 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center transition" title="Ακρόαση">
+                                    <i class="fa-solid fa-volume-high"></i>
+                                </button>
+                                <button onclick="event.stopPropagation(); toggleStarCurrent();" class="w-10 h-10 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center transition" title="Αγαπημένο">
+                                    <i class="fa-regular fa-star text-lg" id="starIconBack"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center my-auto">
+                            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight px-4 text-emerald-400 leading-normal font-title" id="cardBackText">-</h2>
+                        </div>
+                        
+                        <div class="flex justify-between items-center text-xs text-slate-400">
+                            <span><i class="fa-solid fa-rotate mr-1"></i> Κάντε κλικ για επαναφορά</span>
+                            <span id="cardProgressTextBack">0 / 0</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Slider -->
+        <div class="w-full max-w-xl mx-auto space-y-2">
+            <div class="h-2 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                <div class="h-full bg-indigo-600 transition-all duration-300" id="progressBar" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- Card Control Navigation Buttons -->
+        <div class="flex justify-center items-center gap-6 max-w-md mx-auto w-full pt-4">
+            <button onclick="prevCard()" class="w-14 h-14 rounded-2xl bg-white dark:bg-slate-800 shadow-md border border-slate-100 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition active:scale-95">
+                <i class="fa-solid fa-chevron-left text-lg"></i>
+            </button>
+            
+            <button onclick="flipCard()" class="px-8 py-4 rounded-2xl bg-indigo-600 text-white font-bold shadow-lg shadow-indigo-500/35 hover:bg-indigo-700 transition active:scale-95 flex items-center gap-2">
+                <i class="fa-solid fa-rotate"></i> Γύρισε την Κάρτα
+            </button>
+            
+            <button onclick="nextCard()" class="w-14 h-14 rounded-2xl bg-white dark:bg-slate-800 shadow-md border border-slate-100 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition active:scale-95">
+                <i class="fa-solid fa-chevron-right text-lg"></i>
+            </button>
+        </div>
+
+        <!-- Tips Section -->
+        <div class="text-center text-xs text-slate-400 dark:text-slate-500 py-2">
+            <p><kbd class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 shadow-sm mr-1">Space</kbd> για Γύρισμα | <kbd class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 shadow-sm mr-1">&larr;</kbd> <kbd class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 shadow-sm mr-1">&rarr;</kbd> για Πλοήγηση</p>
+        </div>
+    </div>
+
+    <!-- QUIZ VIEW -->
+    <div id="quizView" class="hidden flex-grow flex flex-col justify-between max-w-xl mx-auto w-full py-2">
+        <div class="space-y-6">
+            <!-- Score & Progress Stats -->
+            <div class="flex justify-between items-center bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm">
+                <div>
+                    <span class="text-xs text-slate-400 dark:text-slate-500 uppercase font-bold tracking-wider">Πρόοδος Ερωτήσεων</span>
+                    <p class="text-lg font-bold" id="quizProgressCount">Ερώτηση 1 από 10</p>
+                </div>
+                <div class="text-right">
+                    <span class="text-xs text-slate-400 dark:text-slate-500 uppercase font-bold tracking-wider">Σκορ</span>
+                    <p class="text-lg font-bold text-emerald-500" id="quizScore">0 σωστές</p>
+                </div>
+            </div>
+
+            <!-- Quiz Progress bar -->
+            <div class="h-1.5 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                <div class="h-full bg-purple-600 transition-all duration-300" id="quizProgressBar" style="width: 0%"></div>
+            </div>
+
+            <!-- Quiz Word/Question Box -->
+            <div class="bg-gradient-to-tr from-purple-600 to-indigo-600 rounded-3xl p-8 text-center text-white shadow-xl relative overflow-hidden">
+                <span class="text-xs uppercase font-extrabold tracking-widest bg-white/20 px-3 py-1 rounded-full text-white" id="quizQuestionLangLabel">Μετάφρασε τη λέξη</span>
+                <h3 class="text-3xl sm:text-4xl font-extrabold font-title mt-6 mb-4" id="quizQuestionText">-</h3>
+                <button onclick="speakQuizQuestion()" class="w-10 h-10 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center mx-auto transition" title="Ακρόαση">
+                    <i class="fa-solid fa-volume-high"></i>
+                </button>
+            </div>
+
+            <!-- Multiple Choice Options -->
+            <div class="grid grid-cols-1 gap-3" id="quizOptionsContainer">
+                <!-- Option buttons dynamically generated -->
+            </div>
+        </div>
+
+        <!-- Next Question & Control Panel -->
+        <div class="pt-6 flex justify-between items-center gap-4">
+            <button onclick="resetQuiz()" class="px-5 py-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 font-bold text-sm transition flex items-center gap-2">
+                <i class="fa-solid fa-arrow-rotate-right"></i> Επανεκκίνηση Κουίζ
+            </button>
+            <button id="quizNextBtn" onclick="nextQuizQuestion()" disabled class="px-6 py-3 rounded-xl bg-purple-600 text-white font-bold shadow-lg shadow-purple-500/20 hover:bg-purple-700 transition disabled:opacity-50 disabled:pointer-events-none flex items-center gap-2">
+                Επόμενη Ερώτηση <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- STARRED VIEW -->
+    <div id="starredView" class="hidden flex-grow flex flex-col justify-between max-w-xl mx-auto w-full py-2">
+        <div class="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm flex-grow flex flex-col">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h3 class="text-xl font-bold font-title text-slate-800 dark:text-white flex items-center gap-2">
+                        <i class="fa-solid fa-star text-amber-500"></i> Δικά σας Αγαπημένα
+                    </h3>
+                    <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">Αποθηκευμένες λέξεις/φράσεις για πιο εντατική επανάληψη.</p>
+                </div>
+                <button onclick="clearAllStars()" class="text-xs font-semibold text-red-500 hover:underline">Καθαρισμός όλων</button>
+            </div>
+
+            <div class="flex-grow overflow-y-auto max-h-[400px] pr-2 space-y-2 no-scrollbar" id="starredList">
+                <!-- Stars dynamically injected -->
+            </div>
+            
+            <!-- Empty state fallback -->
+            <div id="starredEmptyState" class="hidden text-center py-12 flex flex-col items-center justify-center my-auto">
+                <div class="w-16 h-16 rounded-full bg-amber-50 dark:bg-amber-900/20 text-amber-500 flex items-center justify-center mb-4 text-2xl">
+                    <i class="fa-regular fa-star"></i>
+                </div>
+                <h4 class="font-bold text-slate-700 dark:text-slate-300">Δεν υπάρχουν αγαπημένα</h4>
+                <p class="text-sm text-slate-400 dark:text-slate-500 max-w-xs mt-1">Πατήστε το εικονίδιο με το αστέρι στις κάρτες για να προσθέσετε λέξεις εδώ.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Simple Notification Pop-Up Alert -->
+<div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 pointer-events-none transition-all duration-300 px-5 py-3.5 bg-slate-900 text-white dark:bg-white dark:text-slate-900 rounded-2xl shadow-xl flex items-center gap-3 font-semibold text-sm">
+    <span id="toastIcon"></span>
+    <span id="toastMessage">Έγινε επιτυχώς</span>
+</div>
+
+<script>
+// Main data dictionary split into 6 groups
+const flashcardGroups = [
+    {
+        id: "g1",
+        title: "Ενοικίαση – Αγορά Σπιτιού",
+        icon: "fa-key",
+        colorClass: "from-emerald-500 to-teal-600",
+        tabColor: "emerald",
+        cards: [
+            { el: "ενοικιάζεται", en: "for rent" },
+            { el: "πωλείται", en: "for sale" },
+            { el: "αγγελία", en: "advertisement" },
+            { el: "ιδιοκτήτης", en: "owner" },
+            { el: "ενοικιαστής", en: "tenant" },
+            { el: "ενοίκιο", en: "rent" },
+            { el: "διαμέρισμα", en: "apartment" },
+            { el: "σπίτι", en: "house" },
+            { el: "κατοικία", en: "residence" },
+            { el: "πολυκατοικία", en: "apartment building" },
+            { el: "μονοκατοικία", en: "detached house" },
+            { el: "γκαρσονιέρα", en: "studio apartment" },
+            { el: "στούντιο", en: "studio" },
+            { el: "δυάρι", en: "two-room apartment" },
+            { el: "τριάρι", en: "three-room apartment" },
+            { el: "τεσσάρι", en: "four-room apartment" },
+            { el: "μεζονέτα", en: "maisonette" },
+            { el: "ελεύθερο", en: "available" },
+            { el: "ραντεβού", en: "appointment" },
+            { el: "διεύθυνση", en: "address" },
+            { el: "κουδούνι", en: "doorbell" },
+            { el: "όροφος", en: "floor/storey" },
+            { el: "ισόγειο", en: "ground floor" },
+            { el: "ημιόροφος", en: "mezzanine floor" },
+            { el: "υπόγειο", en: "basement" },
+            { el: "δεύτερος όροφος", en: "second floor" },
+            { el: "τρίτος όροφος", en: "third floor" },
+            { el: "πέμπτος όροφος", en: "fifth floor" },
+            { el: "έκτος όροφος", en: "sixth floor" },
+            { el: "βεράντα", en: "balcony / terrace" },
+            { el: "μεγάλη βεράντα", en: "large balcony" },
+            { el: "ασανσέρ", en: "elevator" },
+            { el: "θέρμανση", en: "heating" },
+            { el: "φωτεινό", en: "bright" },
+            { el: "σκοτεινό", en: "dark" },
+            { el: "άνετο", en: "spacious / comfortable" },
+            { el: "ακριβό", en: "expensive" },
+            { el: "φθηνό", en: "cheap" }
+        ]
+    },
+    {
+        id: "g2",
+        title: "Δωμάτια του Σπιτιού",
+        icon: "fa-door-open",
+        colorClass: "from-blue-500 to-indigo-600",
+        tabColor: "blue",
+        cards: [
+            { el: "κουζίνα", en: "kitchen" },
+            { el: "μπάνιο", en: "bathroom" },
+            { el: "υπνοδωμάτιο", en: "bedroom" },
+            { el: "κρεβατοκάμαρα", en: "bedroom" },
+            { el: "καθιστικό", en: "living room" },
+            { el: "σαλόνι", en: "living room" },
+            { el: "τραπεζαρία", en: "dining room" },
+            { el: "διάδρομος", en: "hallway" },
+            { el: "αποθήκη", en: "storage room" }
+        ]
+    },
+    {
+        id: "g3",
+        title: "Έπιπλα & Αντικείμενα",
+        icon: "fa-chair",
+        colorClass: "from-amber-500 to-orange-600",
+        tabColor: "amber",
+        cards: [
+            { el: "ντουλάπα", en: "wardrobe" },
+            { el: "ντουλάπι", en: "cupboard" },
+            { el: "συρτάρι", en: "drawer" },
+            { el: "ψυγείο", en: "refrigerator" },
+            { el: "νεροχύτης", en: "sink" },
+            { el: "βρύση", en: "tap" },
+            { el: "κρεβάτι", en: "bed" },
+            { el: "κομοδίνο", en: "bedside table" },
+            { el: "καθρέφτης", en: "mirror" },
+            { el: "τραπέζι", en: "table" },
+            { el: "καρέκλα", en: "chair" },
+            { el: "γραφείο", en: "desk" },
+            { el: "βιβλιοθήκη", en: "bookcase" },
+            { el: "καναπές", en: "sofa" },
+            { el: "πολυθρόνα", en: "armchair" },
+            { el: "χαλί", en: "carpet" },
+            { el: "φωτιστικό", en: "lamp" },
+            { el: "κουρτίνες", en: "curtains" },
+            { el: "μπανιέρα", en: "bathtub" },
+            { el: "πλυντήριο ρούχων", en: "washing machine" },
+            { el: "νιπτήρας", en: "washbasin" },
+            { el: "λεκάνη τουαλέτας", en: "toilet bowl" },
+            { el: "πόρτα", en: "door" },
+            { el: "παράθυρο", en: "window" }
+        ]
+    },
+    {
+        id: "g4",
+        title: "Επιρρήματα & Προθέσεις Τόπου",
+        icon: "fa-compass",
+        colorClass: "from-purple-500 to-violet-600",
+        tabColor: "purple",
+        cards: [
+            { el: "πάνω", en: "above / on top" },
+            { el: "κάτω", en: "below / under" },
+            { el: "μέσα", en: "inside" },
+            { el: "έξω", en: "outside" },
+            { el: "μπροστά από", en: "in front of" },
+            { el: "πίσω από", en: "behind" },
+            { el: "δίπλα σε", en: "next to" },
+            { el: "κοντά σε", en: "close to" },
+            { el: "μακριά από", en: "far from" },
+            { el: "ανάμεσα σε", en: "between" },
+            { el: "απέναντι από", en: "opposite" },
+            { el: "δεξιά", en: "right" },
+            { el: "αριστερά", en: "left" },
+            { el: "ευθεία", en: "straight ahead" },
+            { el: "στη γωνία", en: "on the corner" }
+        ]
+    },
+    {
+        id: "g5",
+        title: "Γειτονιά – Πόλη",
+        icon: "fa-tree-city",
+        colorClass: "from-rose-500 to-pink-600",
+        tabColor: "rose",
+        cards: [
+            { el: "σχολείο", en: "school" },
+            { el: "φούρνος", en: "bakery" },
+            { el: "καφενείο", en: "café" },
+            { el: "καφετέρια", en: "café" },
+            { el: "ταβέρνα", en: "tavern" },
+            { el: "περίπτερο", en: "kiosk" },
+            { el: "σούπερ μάρκετ", en: "supermarket" },
+            { el: "στάση", en: "bus stop" },
+            { el: "στάση λεωφορείου", en: "bus stop" },
+            { el: "μετρό", en: "metro" },
+            { el: "πάρκο", en: "park" },
+            { el: "φαρμακείο", en: "pharmacy" },
+            { el: "δήμος", en: "municipality" },
+            { el: "δρόμος", en: "street" },
+            { el: "στενό", en: "narrow street / alley" }
+        ]
+    },
+    {
+        id: "g6",
+        title: "Χρήσιμες Φράσεις",
+        icon: "fa-comments",
+        colorClass: "from-cyan-500 to-sky-600",
+        tabColor: "cyan",
+        cards: [
+            { el: "Ψάχνω για σπίτι.", en: "I am looking for a house." },
+            { el: "Τηλεφωνώ για την αγγελία.", en: "I am calling about the advertisement." },
+            { el: "Είναι ακόμη διαθέσιμο;", en: "Is it still available?" },
+            { el: "Πόσο είναι το ενοίκιο;", en: "How much is the rent?" },
+            { el: "Είναι κοντά στο μετρό;", en: "Is it close to the metro?" },
+            { el: "Έχει βεράντα;", en: "Does it have a balcony?" },
+            { el: "Σε ποιον όροφο είναι;", en: "On which floor is it?" },
+            { el: "Πότε θα είναι ελεύθερο;", en: "When will it be available?" },
+            { el: "Θα ήθελα να το δω.", en: "I would like to see it." },
+            { el: "Είναι πολύ ακριβό για μένα.", en: "It is too expensive for me." },
+            { el: "Μου αρέσει το διαμέρισμα.", en: "I like the apartment." },
+            { el: "Χρειάζομαι λίγο χρόνο να το σκεφτώ.", en: "I need some time to think about it." }
+        ]
+    }
+];
+
+// State variables
+let currentGroupIndex = 0;
+let currentCardIndex = 0;
+let isFlipped = false;
+let currentDirection = "el-en"; // "el-en" -> GR to EN, "en-el" -> EN to GR
+let autoplayInterval = null;
+let autoplaySpeed = 3000; // ms
+let currentMode = "cards"; // cards, quiz, starred
+
+// Quiz State
+let quizCards = [];
+let quizCurrentIndex = 0;
+let quizScore = 0;
+let quizAnswered = false;
+
+// Starred (Favorite) Cards loaded from localStorage if exists
+let starredCards = JSON.parse(localStorage.getItem('starredCards_flashcards') || '[]');
+
+// Touch events detection for card swipe
+let touchstartX = 0;
+let touchendX = 0;
+
+// Initialize Application on DOM Ready
+window.onload = function() {
+    initTheme();
+    generateGroupTabs();
+    loadGroup(0);
+    updateStarredCountDisplay();
+    setupSwipeGestures();
+    
+    // Global Keyboard Listeners
+    document.addEventListener('keydown', (e) => {
+        if (currentMode === 'cards') {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                flipCard();
+            } else if (e.code === 'ArrowLeft') {
+                prevCard();
+            } else if (e.code === 'ArrowRight') {
+                nextCard();
+            } else if (e.code === 'KeyS') {
+                speakActiveSide(isFlipped ? 'back' : 'front');
+            }
+        }
+    });
+};
+
+// Dark/Light Mode Management
+function initTheme() {
+    if (localStorage.getItem('dark-mode') === 'true' || 
+        (!localStorage.getItem('dark-mode') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+    } else {
+        document.documentElement.classList.remove('dark');
+    }
+    
+    document.getElementById('themeToggle').addEventListener('click', () => {
+        const isDark = document.documentElement.classList.toggle('dark');
+        localStorage.setItem('dark-mode', isDark);
+        showToast(isDark ? "Ενεργοποιήθηκε η Σκοτεινή Λειτουργία" : "Ενεργοποιήθηκε η Φωτεινή Λειτουργία", "fa-circle-half-stroke");
+    });
+}
+
+// Generate Category Tabs Dynamically
+function generateGroupTabs() {
+    const container = document.getElementById('tabsContainer');
+    container.innerHTML = '';
+    
+    flashcardGroups.forEach((group, index) => {
+        const tabBtn = document.createElement('button');
+        tabBtn.id = `tab-${index}`;
+        tabBtn.onclick = () => selectGroup(index);
+        
+        // Dynamic styling depending on current index
+        tabBtn.className = `flex-shrink-0 flex items-center gap-2.5 px-5 py-3.5 rounded-2xl font-semibold text-sm transition-all duration-300 transform border whitespace-nowrap scroll-mx-4 ${
+            index === 0 
+            ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20 border-transparent scale-102' 
+            : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+        }`;
+        
+        tabBtn.innerHTML = `
+            <i class="fa-solid ${group.icon} text-base"></i>
+            <span>${group.title}</span>
+            <span class="text-xs ml-1 px-2 py-0.5 rounded-full ${index === 0 ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'}">${group.cards.length}</span>
+        `;
+        
+        container.appendChild(tabBtn);
+    });
+}
+
+// Load select group cards
+function selectGroup(groupIndex) {
+    if (autoplayInterval) stopAutoplay();
+    currentGroupIndex = groupIndex;
+    
+    // Update Tab UI Styles
+    flashcardGroups.forEach((group, index) => {
+        const tab = document.getElementById(`tab-${index}`);
+        if (!tab) return;
+        
+        if (index === groupIndex) {
+            tab.className = `flex-shrink-0 flex items-center gap-2.5 px-5 py-3.5 rounded-2xl font-semibold text-sm transition-all duration-300 transform border whitespace-nowrap scroll-mx-4 bg-blue-600 text-white shadow-lg shadow-blue-500/20 border-transparent scale-102`;
+            // Scroll tab smoothly into view if partially hidden
+            tab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        } else {
+            tab.className = `flex-shrink-0 flex items-center gap-2.5 px-5 py-3.5 rounded-2xl font-semibold text-sm transition-all duration-300 transform border whitespace-nowrap scroll-mx-4 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600`;
+        }
+        
+        // Reset count badges styles inside tabs
+        const badge = tab.querySelector('span:last-child');
+        if (badge) {
+            if (index === groupIndex) {
+                badge.className = "text-xs ml-1 px-2 py-0.5 rounded-full bg-white/20 text-white";
+            } else {
+                badge.className = "text-xs ml-1 px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400";
+            }
+        }
+    });
+    
+    loadGroup(groupIndex);
+    
+    // If user was in quiz mode, reset and start quiz for new category
+    if (currentMode === 'quiz') {
+        resetQuiz();
+    }
+}
+
+// Populate card data for current selected group
+function loadGroup(groupIndex) {
+    currentCardIndex = 0;
+    isFlipped = false;
+    
+    // Re-apply correct gradient coloring to Card Front based on group properties
+    const frontStyle = document.getElementById('cardFrontStyle');
+    frontStyle.className = `absolute inset-0 w-full h-full rounded-3xl backface-hidden flex flex-col justify-between p-6 sm:p-8 bg-gradient-to-tr ${flashcardGroups[groupIndex].colorClass} text-white`;
+    
+    // Keep internal rotation back to front
+    const inner = document.getElementById('flashCardInner');
+    inner.classList.remove('rotate-y-180');
+    
+    updateCardDisplay();
+}
+
+// Update card contents on screen
+function updateCardDisplay() {
+    const group = flashcardGroups[currentGroupIndex];
+    if (!group.cards || group.cards.length === 0) return;
+    
+    const card = group.cards[currentCardIndex];
+    
+    // Elements
+    const frontText = document.getElementById('cardFrontText');
+    const backText = document.getElementById('cardBackText');
+    const frontLabel = document.getElementById('cardFrontLangLabel');
+    const backLabel = document.getElementById('cardBackLangLabel');
+    
+    // Direction setting updates
+    if (currentDirection === "el-en") {
+        frontText.textContent = card.el;
+        backText.textContent = card.en;
+        frontLabel.textContent = "Ελληνικά";
+        backLabel.textContent = "Αγγλικά";
+    } else {
+        frontText.textContent = card.en;
+        backText.textContent = card.el;
+        frontLabel.textContent = "Αγγλικά";
+        backLabel.textContent = "Ελληνικά";
+    }
+    
+    // Update progress numbers
+    const totalCount = group.cards.length;
+    const progressText = `${currentCardIndex + 1} από ${totalCount}`;
+    document.getElementById('cardProgressText').textContent = progressText;
+    document.getElementById('cardProgressTextBack').textContent = progressText;
+    
+    // Update progress bar percentage
+    const percentage = ((currentCardIndex + 1) / totalCount) * 100;
+    document.getElementById('progressBar').style.width = `${percentage}%`;
+    
+    // Update Favorite (Star) Status Icons
+    updateStarIcons();
+}
+
+// Turn card 180 degrees
+function flipCard() {
+    isFlipped = !isFlipped;
+    const inner = document.getElementById('flashCardInner');
+    if (isFlipped) {
+        inner.classList.add('rotate-y-180');
+    } else {
+        inner.classList.remove('rotate-y-180');
+    }
+}
+
+// Go to next card
+function nextCard() {
+    const group = flashcardGroups[currentGroupIndex];
+    
+    // Flip card back to front first to ensure animation looks nice
+    if (isFlipped) {
+        flipCard();
+        setTimeout(() => {
+            changeCard(1, group);
+        }, 150);
+    } else {
+        changeCard(1, group);
+    }
+}
+
+// Go to previous card
+function prevCard() {
+    const group = flashcardGroups[currentGroupIndex];
+    
+    if (isFlipped) {
+        flipCard();
+        setTimeout(() => {
+            changeCard(-1, group);
+        }, 150);
+    } else {
+        changeCard(-1, group);
+    }
+}
+
+// Safe index step transitions
+function changeCard(direction, group) {
+    currentCardIndex += direction;
+    
+    // Circular navigation loops
+    if (currentCardIndex >= group.cards.length) {
+        currentCardIndex = 0;
+    } else if (currentCardIndex < 0) {
+        currentCardIndex = group.cards.length - 1;
+    }
+    
+    updateCardDisplay();
+}
+
+// Enable clicking directly on card to flip
+document.getElementById('flashcardContainer').addEventListener('click', () => {
+    flipCard();
+});
+
+// Swipe Gesture Handlers
+function setupSwipeGestures() {
+    const container = document.getElementById('flashcardContainer');
+    
+    container.addEventListener('touchstart', e => {
+        touchstartX = e.changedTouches[0].screenX;
+    }, {passive: true});
+    
+    container.addEventListener('touchend', e => {
+        touchendX = e.changedTouches[0].screenX;
+        handleGesture();
+    }, {passive: true});
+}
+
+function handleGesture() {
+    const swipeThreshold = 50;
+    if (touchendX < touchstartX - swipeThreshold) {
+        // Swiped Left -> Next Card
+        nextCard();
+    }
+    if (touchendX > touchstartX + swipeThreshold) {
+        // Swiped Right -> Previous Card
+        prevCard();
+    }
+}
+
+// Voice Pronunciation (Text-to-Speech) API
+function speakActiveSide(side) {
+    if (!('speechSynthesis' in window)) {
+        showToast("Το σύστημα Text-to-Speech δεν υποστηρίζεται στον browser σας.", "fa-triangle-exclamation");
+        return;
+    }
+    
+    const card = flashcardGroups[currentGroupIndex].cards[currentCardIndex];
+    let textToSpeak = "";
+    let langCode = "el-GR";
+    
+    // Determine translation language to speak
+    if (side === 'front') {
+        textToSpeak = currentDirection === 'el-en' ? card.el : card.en;
+        langCode = currentDirection === 'el-en' ? 'el-GR' : 'en-US';
+    } else {
+        textToSpeak = currentDirection === 'el-en' ? card.en : card.el;
+        langCode = currentDirection === 'el-en' ? 'en-US' : 'el-GR';
+    }
+    
+    speakWord(textToSpeak, langCode);
+}
+
+function speakWord(text, lang) {
+    // Stop any active speech before starting new one
+    window.speechSynthesis.cancel();
+    
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = lang;
+    
+    // Try to load correct regional voices cleanly
+    const voices = window.speechSynthesis.getVoices();
+    const voice = voices.find(v => v.lang.startsWith(lang));
+    if (voice) {
+        utterance.voice = voice;
+    }
+    
+    window.speechSynthesis.speak(utterance);
+}
+
+// Favorites star management
+function isCurrentStarred() {
+    const activeCard = flashcardGroups[currentGroupIndex].cards[currentCardIndex];
+    return starredCards.some(item => item.el === activeCard.el && item.en === activeCard.en);
+}
+
+function toggleStarCurrent() {
+    const activeCard = flashcardGroups[currentGroupIndex].cards[currentCardIndex];
+    const index = starredCards.findIndex(item => item.el === activeCard.el && item.en === activeCard.en);
+    
+    if (index > -1) {
+        // Remove from favorite
+        starredCards.splice(index, 1);
+        showToast("Αφαιρέθηκε από τα Αγαπημένα", "fa-star-half-stroke");
+    } else {
+        // Add to favorite
+        starredCards.push({
+            el: activeCard.el,
+            en: activeCard.en,
+            groupId: flashcardGroups[currentGroupIndex].id,
+            groupTitle: flashcardGroups[currentGroupIndex].title
+        });
+        showToast("Προστέθηκε στα Αγαπημένα", "fa-star text-amber-500");
+    }
+    
+    // Sync storage and update elements
+    localStorage.setItem('starredCards_flashcards', JSON.stringify(starredCards));
+    updateStarredCountDisplay();
+    updateStarIcons();
+    renderStarredList();
+}
+
+function updateStarIcons() {
+    const starIconFront = document.getElementById('starIconFront');
+    const starIconBack = document.getElementById('starIconBack');
+    
+    if (isCurrentStarred()) {
+        starIconFront.className = "fa-solid fa-star text-amber-400";
+        starIconBack.className = "fa-solid fa-star text-amber-400";
+    } else {
+        starIconFront.className = "fa-regular fa-star text-white";
+        starIconBack.className = "fa-regular fa-star text-white";
+    }
+}
+
+function updateStarredCountDisplay() {
+    document.getElementById('starredCount').textContent = starredCards.length;
+}
+
+function clearAllStars() {
+    if (starredCards.length === 0) return;
+    if (confirm("Είστε σίγουροι ότι θέλετε να διαγράψετε όλα τα Αγαπημένα;")) {
+        starredCards = [];
+        localStorage.setItem('starredCards_flashcards', JSON.stringify(starredCards));
+        updateStarredCountDisplay();
+        updateStarIcons();
+        renderStarredList();
+        showToast("Τα Αγαπημένα καθαρίστηκαν", "fa-trash-can");
+    }
+}
+
+// Displaying items in Starred List Mode
+function renderStarredList() {
+    const listContainer = document.getElementById('starredList');
+    const emptyState = document.getElementById('starredEmptyState');
+    
+    listContainer.innerHTML = '';
+    
+    if (starredCards.length === 0) {
+        emptyState.classList.remove('hidden');
+        listContainer.classList.add('hidden');
+        return;
+    }
+    
+    emptyState.classList.add('hidden');
+    listContainer.classList.remove('hidden');
+    
+    starredCards.forEach((card, index) => {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = "p-4 rounded-2xl bg-slate-50 dark:bg-slate-700/50 border border-slate-100 dark:border-slate-800 flex items-center justify-between gap-4 group transition hover:border-indigo-100 dark:hover:border-indigo-900";
+        
+        itemDiv.innerHTML = `
+            <div class="flex-grow">
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 bg-slate-200 dark:bg-slate-800 rounded text-slate-500 dark:text-slate-400">
+                        ${card.groupTitle}
+                    </span>
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                        <span class="text-xs text-slate-400 block">Ελληνικά</span>
+                        <span class="font-bold font-title text-slate-800 dark:text-white">${card.el}</span>
+                    </div>
+                    <div>
+                        <span class="text-xs text-slate-400 block">Αγγλικά</span>
+                        <span class="font-bold font-title text-indigo-600 dark:text-indigo-400">${card.en}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="speakWord('${card.el}', 'el-GR')" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 text-slate-600 dark:text-slate-300 hover:text-indigo-600 flex items-center justify-center transition" title="Ακρόαση Ελληνικών">
+                    <i class="fa-solid fa-volume-high text-xs"></i>
+                </button>
+                <button onclick="unstarFromList(${index})" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-950/30 text-slate-400 hover:text-red-500 flex items-center justify-center transition" title="Αφαίρεση">
+                    <i class="fa-solid fa-trash-can text-xs"></i>
+                </button>
+            </div>
+        `;
+        listContainer.appendChild(itemDiv);
+    });
+}
+
+function unstarFromList(index) {
+    starredCards.splice(index, 1);
+    localStorage.setItem('starredCards_flashcards', JSON.stringify(starredCards));
+    updateStarredCountDisplay();
+    updateStarIcons();
+    renderStarredList();
+    showToast("Αφαιρέθηκε από τα Αγαπημένα", "fa-trash-can");
+}
+
+// Randomize current group card queue
+function shuffleCurrentGroup() {
+    const currentGroup = flashcardGroups[currentGroupIndex];
+    
+    // Fisher-Yates shuffle implementation
+    for (let i = currentGroup.cards.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [currentGroup.cards[i], currentGroup.cards[j]] = [currentGroup.cards[j], currentGroup.cards[i]];
+    }
+    
+    currentCardIndex = 0;
+    isFlipped = false;
+    document.getElementById('flashCardInner').classList.remove('rotate-y-180');
+    
+    updateCardDisplay();
+    showToast("Η κατηγορία ανακατεύτηκε", "fa-shuffle");
+}
+
+// Direction selector toggle
+function handleDirectionChange() {
+    const directions = document.getElementsByName('langDirection');
+    for (const dir of directions) {
+        if (dir.checked) {
+            currentDirection = dir.value;
+            break;
+        }
+    }
+    
+    // Instantly reset view
+    isFlipped = false;
+    document.getElementById('flashCardInner').classList.remove('rotate-y-180');
+    updateCardDisplay();
+}
+
+// Autoplay Slideshow Mode
+function toggleAutoplay() {
+    const btn = document.getElementById('autoplayBtn');
+    const text = document.getElementById('autoplayText');
+    const icon = document.getElementById('autoplayIcon');
+    
+    if (autoplayInterval) {
+        stopAutoplay();
+    } else {
+        // Start Autoplay slideshow
+        icon.className = "fa-solid fa-pause text-amber-500 animate-pulse";
+        text.textContent = "Παύση Ροής";
+        btn.classList.add('bg-amber-50', 'dark:bg-amber-950/30', 'border-amber-200');
+        
+        autoplayInterval = setInterval(() => {
+            // 1. Flip to answer side
+            flipCard();
+            
+            // 2. Wait 2 seconds, then flip back and proceed to next card
+            setTimeout(() => {
+                if (autoplayInterval) { // verify it wasn't paused in between
+                    nextCard();
+                }
+            }, 2000);
+            
+        }, autoplaySpeed);
+        
+        showToast("Η Αυτόματη Ροή ξεκίνησε", "fa-play text-emerald-500");
+    }
+}
+
+function stopAutoplay() {
+    if (autoplayInterval) {
+        clearInterval(autoplayInterval);
+        autoplayInterval = null;
+    }
+    
+    const btn = document.getElementById('autoplayBtn');
+    const text = document.getElementById('autoplayText');
+    const icon = document.getElementById('autoplayIcon');
+    
+    icon.className = "fa-solid fa-play text-emerald-500";
+    text.textContent = "Αυτόματη Ροή";
+    btn.classList.remove('bg-amber-50', 'dark:bg-amber-950/30', 'border-amber-200');
+    showToast("Η Αυτόματη Ροή σταμάτησε", "fa-pause text-amber-500");
+}
+
+// Mode switching handler (Cards vs Quiz vs Starred)
+function switchMode(mode) {
+    if (autoplayInterval) stopAutoplay();
+    currentMode = mode;
+    
+    // Hide all view screens
+    document.getElementById('cardsView').classList.add('hidden');
+    document.getElementById('quizView').classList.add('hidden');
+    document.getElementById('starredView').classList.add('hidden');
+    
+    // Remove active styles on sub-nav tabs
+    const buttons = [
+        { id: 'modeBtnCards', active: 'bg-white text-slate-800 dark:bg-slate-700 dark:text-white shadow', inactive: 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white' },
+        { id: 'modeBtnQuiz', active: 'bg-white text-slate-800 dark:bg-slate-700 dark:text-white shadow', inactive: 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white' },
+        { id: 'modeBtnStarred', active: 'bg-white text-slate-800 dark:bg-slate-700 dark:text-white shadow', inactive: 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white' }
+    ];
+    
+    buttons.forEach(btn => {
+        const el = document.getElementById(btn.id);
+        const targetMode = btn.id.replace('modeBtn', '').toLowerCase();
+        
+        if (targetMode === mode) {
+            el.className = `py-2.5 px-3 rounded-xl font-semibold text-sm transition flex items-center justify-center gap-2 ${btn.active}`;
+        } else {
+            el.className = `py-2.5 px-3 rounded-xl font-semibold text-sm transition flex items-center justify-center gap-2 ${btn.inactive}`;
+        }
+    });
+    
+    // Display target view
+    if (mode === 'cards') {
+        document.getElementById('cardsView').classList.remove('hidden');
+        updateCardDisplay();
+    } else if (mode === 'quiz') {
+        document.getElementById('quizView').classList.remove('hidden');
+        resetQuiz();
+    } else if (mode === 'starred') {
+        document.getElementById('starredView').classList.remove('hidden');
+        renderStarredList();
+    }
+}
+
+// RESET AND PREPARE QUIZ
+function resetQuiz() {
+    const currentGroup = flashcardGroups[currentGroupIndex];
+    
+    // Generate randomized copy of cards from active group
+    quizCards = [...currentGroup.cards];
+    // Shuffle the quiz cards
+    for (let i = quizCards.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [quizCards[i], quizCards[j]] = [quizCards[j], quizCards[i]];
+    }
+    
+    // Limit quiz length to maximum 10 or current card count
+    quizCards = quizCards.slice(0, Math.min(10, quizCards.length));
+    
+    quizCurrentIndex = 0;
+    quizScore = 0;
+    
+    loadQuizQuestion();
+}
+
+function loadQuizQuestion() {
+    quizAnswered = false;
+    document.getElementById('quizNextBtn').disabled = true;
+    
+    const totalQuestions = quizCards.length;
+    document.getElementById('quizProgressCount').textContent = `Ερώτηση ${quizCurrentIndex + 1} από ${totalQuestions}`;
+    document.getElementById('quizScore').textContent = `${quizScore} σωστές`;
+    
+    // Progress Bar
+    const percentage = ((quizCurrentIndex) / totalQuestions) * 100;
+    document.getElementById('quizProgressBar').style.width = `${percentage}%`;
+    
+    const card = quizCards[quizCurrentIndex];
+    
+    // Direction based dynamic question setup
+    const questionText = document.getElementById('quizQuestionText');
+    const label = document.getElementById('quizQuestionLangLabel');
+    let correctAnswer = "";
+    
+    if (currentDirection === "el-en") {
+        questionText.textContent = card.el;
+        correctAnswer = card.en;
+        label.textContent = "Πώς μεταφράζεται η λέξη / φράση στα Αγγλικά;";
+    } else {
+        questionText.textContent = card.en;
+        correctAnswer = card.el;
+        label.textContent = "Πώς μεταφράζεται η λέξη / φράση στα Ελληνικά;";
+    }
+    
+    // Generate options pool (1 correct, 3 wrong)
+    const options = generateQuizOptions(correctAnswer);
+    
+    // Render option buttons
+    const container = document.getElementById('quizOptionsContainer');
+    container.innerHTML = '';
+    
+    options.forEach(optionText => {
+        const btn = document.createElement('button');
+        btn.onclick = () => selectQuizAnswer(btn, optionText, correctAnswer);
+        btn.className = "w-full text-left p-4 rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-semibold text-sm transition hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center justify-between group";
+        btn.innerHTML = `
+            <span class="text-slate-800 dark:text-slate-200">${optionText}</span>
+            <span class="w-6 h-6 rounded-full border border-slate-300 dark:border-slate-600 flex items-center justify-center text-xs text-transparent transition group-hover:border-indigo-500">
+                <i class="fa-solid fa-check"></i>
+            </span>
+        `;
+        container.appendChild(btn);
+    });
+}
+
+// Get correct and 3 random dummy incorrect options
+function generateQuizOptions(correctAnswer) {
+    const options = [correctAnswer];
+    
+    // Get all possible translation answers across the entire application vocab pool
+    const allCardsInApp = flashcardGroups.flatMap(g => g.cards);
+    const translationKey = currentDirection === "el-en" ? 'en' : 'el';
+    const allAnswers = [...new Set(allCardsInApp.map(c => c[translationKey]))];
+    
+    // Filter out the actual correct one
+    const incorrectChoices = allAnswers.filter(ans => ans !== correctAnswer);
+    
+    // Pull 3 unique random options
+    while (options.length < Math.min(4, allAnswers.length)) {
+        const randomIndex = Math.floor(Math.random() * incorrectChoices.length);
+        const choice = incorrectChoices[randomIndex];
+        if (!options.includes(choice)) {
+            options.push(choice);
+        }
+    }
+    
+    // Shuffle the options array so correct answers aren't always first
+    for (let i = options.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [options[i], options[j]] = [options[j], options[i]];
+    }
+    
+    return options;
+}
+
+function selectQuizAnswer(selectedButton, selectedText, correctText) {
+    if (quizAnswered) return;
+    quizAnswered = true;
+    
+    const container = document.getElementById('quizOptionsContainer');
+    const buttons = container.querySelectorAll('button');
+    
+    buttons.forEach(btn => {
+        const spanText = btn.querySelector('span:first-child').textContent;
+        const iconSpan = btn.querySelector('span:last-child');
+        
+        // Disable click reactions
+        btn.onclick = null;
+        
+        if (spanText === correctText) {
+            // Correct element gets marked Green
+            btn.className = "w-full text-left p-4 rounded-2xl border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20 font-bold text-sm flex items-center justify-between text-emerald-700 dark:text-emerald-400";
+            iconSpan.className = "w-6 h-6 rounded-full bg-emerald-500 border-none flex items-center justify-center text-xs text-white";
+        } else if (spanText === selectedText && selectedText !== correctText) {
+            // Selected wrong element gets marked Red
+            btn.className = "w-full text-left p-4 rounded-2xl border-2 border-rose-500 bg-rose-50 dark:bg-rose-950/20 font-semibold text-sm flex items-center justify-between text-rose-700 dark:text-rose-400";
+            iconSpan.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+            iconSpan.className = "w-6 h-6 rounded-full bg-rose-500 border-none flex items-center justify-center text-xs text-white";
+        } else {
+            // Rest get muted
+            btn.className = "w-full text-left p-4 rounded-2xl border-2 border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-800 opacity-50 text-sm flex items-center justify-between text-slate-400 dark:text-slate-500";
+        }
+    });
+    
+    if (selectedText === correctText) {
+        quizScore++;
+        document.getElementById('quizScore').textContent = `${quizScore} σωστές`;
+        showToast("Σωστή απάντηση!", "fa-circle-check text-emerald-500");
+    } else {
+        showToast("Λάθος απάντηση", "fa-circle-xmark text-rose-500");
+    }
+    
+    // Enable "Next" button progression
+    document.getElementById('quizNextBtn').disabled = false;
+}
+
+function speakQuizQuestion() {
+    if (!('speechSynthesis' in window)) return;
+    const card = quizCards[quizCurrentIndex];
+    const textToSpeak = currentDirection === 'el-en' ? card.el : card.en;
+    const langCode = currentDirection === 'el-en' ? 'el-GR' : 'en-US';
+    speakWord(textToSpeak, langCode);
+}
+
+function nextQuizQuestion() {
+    quizCurrentIndex++;
+    
+    if (quizCurrentIndex >= quizCards.length) {
+        // Quiz completed
+        const percentage = 100;
+        document.getElementById('quizProgressBar').style.width = `${percentage}%`;
+        
+        // Show complete summary modal / display box
+        showQuizResults();
+    } else {
+        loadQuizQuestion();
+    }
+}
+
+function showQuizResults() {
+    const container = document.getElementById('quizOptionsContainer');
+    const header = document.getElementById('quizQuestionText');
+    const label = document.getElementById('quizQuestionLangLabel');
+    
+    label.textContent = "Αποτελέσματα Κουίζ";
+    header.textContent = `Ολοκληρώθηκε!`;
+    
+    const successRatio = quizScore / quizCards.length;
+    let rankMessage = "Μπορείτε και καλύτερα! Συνεχίστε την εξάσκηση.";
+    let iconClass = "fa-star-half-stroke text-amber-500";
+    
+    if (successRatio >= 0.9) {
+        rankMessage = "Εξαιρετικά! Έχετε κατακτήσει πλήρως αυτήν την ενότητα!";
+        iconClass = "fa-award text-yellow-500";
+    } else if (successRatio >= 0.6) {
+        rankMessage = "Πολύ καλή προσπάθεια! Λίγη ακόμα εξάσκηση και θα είστε τέλειοι.";
+        iconClass = "fa-thumbs-up text-blue-500";
+    }
+    
+    container.innerHTML = `
+        <div class="text-center py-6 px-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl space-y-4">
+            <div class="w-20 h-20 rounded-full bg-indigo-50 dark:bg-indigo-950/40 flex items-center justify-center mx-auto text-4xl">
+                <i class="fa-solid ${iconClass}"></i>
+            </div>
+            <div>
+                <h4 class="text-3xl font-black font-title text-indigo-600 dark:text-indigo-400">${quizScore} / ${quizCards.length}</h4>
+                <p class="text-sm text-slate-500 dark:text-slate-400 font-semibold mt-1">Σωστές Απαντήσεις</p>
+            </div>
+            <p class="text-sm text-slate-600 dark:text-slate-300 max-w-xs mx-auto leading-relaxed">
+                ${rankMessage}
+            </p>
+        </div>
+    `;
+    
+    document.getElementById('quizNextBtn').disabled = true;
+}
+
+// Notification Toast Banner
+function showToast(message, iconClass) {
+    const toast = document.getElementById('toast');
+    const toastMsg = document.getElementById('toastMessage');
+    const toastIcon = document.getElementById('toastIcon');
+    
+    toastMsg.textContent = message;
+    toastIcon.innerHTML = `<i class="fa-solid ${iconClass}"></i>`;
+    
+    // Animate in
+    toast.className = "fixed bottom-5 right-5 z-50 transform translate-y-0 opacity-100 px-5 py-3.5 bg-slate-900 text-white dark:bg-white dark:text-slate-900 rounded-2xl shadow-xl flex items-center gap-3 font-semibold text-sm transition-all duration-300";
+    
+    // Clear and hide after 2.5 seconds
+    setTimeout(() => {
+        toast.className = "fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 pointer-events-none transition-all duration-300 px-5 py-3.5 bg-slate-900 text-white dark:bg-white dark:text-slate-900 rounded-2xl shadow-xl flex items-center gap-3 font-semibold text-sm";
+    }, 2500);
+}
+</script>
+</body>
+</html>
